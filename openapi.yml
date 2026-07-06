@@ -1,0 +1,120 @@
+openapi: 3.0.0
+info:
+  title: Papa Johns Empleados API
+  version: 1.0.0
+  description: API for managing employee tasks in the kitchen, packaging, and dispatch areas.
+
+paths:
+  /tasks/cocina:
+    get:
+      summary: Get tasks for the kitchen (Cocina)
+      responses:
+        '200':
+          description: A list of tasks for the kitchen
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+
+  /tasks/empaque:
+    get:
+      summary: Get tasks for packaging (Empaque)
+      responses:
+        '200':
+          description: A list of tasks for packaging
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+
+  /tasks/despacho:
+    get:
+      summary: Get tasks for dispatch (Despacho)
+      responses:
+        '200':
+          description: A list of tasks for dispatch
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+
+  /tenants/{tenantId}/orders/{id}/status:
+    patch:
+      summary: Update order status
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order status updated successfully
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    Task:
+      type: object
+      properties:
+        orderId:
+          type: string
+          example: "267c290f-1f6d-4df8-8743-ea96ead3c2b0"
+        tenantId:
+          type: string
+          example: "tenant123"
+        stage:
+          type: string
+          example: "COCINA"
+        taskToken:
+          type: string
+          example: "AQCUAAAAKgAAAAMAAAAAAAAAASNbqpeKkD8jqxvmobwaKu3/Hzzrbl52mCWxVd5FiO1aE0KqSHI+/Ha7d+NotH6s/HrmRyzGIybmHT2/FAiPsqC5QYZjoSU4/Eoe2F+dKZomDPOZ+f9rhalkc2JDvQ==LC07UyD9cMRSHtL56H9qXHyCg/MkpOF5+AU4V0JmK584IQRbJ4pHbqU68DXkWQfzOj7n7Oph5lfOvz0ysKUtV2nBb/ZbvwZ+H/zsMRrtNdFv755hGxiO/GkJLG40XdD6kTJuCekHRFjdJWghX3FJRZqc7T+CFLF4qtXFBjUYLoNCKiyi0i70Kfn8gZltyRHMKNeWWrKPzU9hEQSoEbxnFcHW5+hRsk7G7bbsnv+6kTixgyq9U03K+jCWQX7EZYIq8AKrLzvuPIjl9TU0yA9aqkF0gIa5EgHbKR+E3RZ+RMwRD9FmCZZGqGdSNhxyroEy0JYNmxhYdo0y1tUdzbjbq31SuCmX3JlkIXxtREiGr3fobfSampcZfWWEgZoYjx6sW7XaZ6/G6Z9yafceAObAcn9BS8ATd7WI89BNTDgNpfG2kxNIXXOSjxwPPEcG6bTyuvyNR6cExgk0TwLLqyXIUfcfAUJYJwQTeOSCnJUGsULnaz1ORoH0KLEEPfQNt/ZDqqLsmq68VyYNkJBi6Lkd"
+        receiptHandle:
+          type: string
+          example: "AQEBHSrJ3sca51mbNEq5VQy8dUyxzFkEEisHMsqqDRMpyOxHERfE1StCzPRidMO9ktSAXpwsR5rjS+Rjof3RJ3M2Aaa54vyIIz3qs/yeszkhIVALnOb0PUXLunYrJ1ipVp3u61UcGOXtO4DOdyOGLXm4Vf8C5XTEmPvGx8VkZxg1Tt1oety7444KL0w+pBSnT/StCbN5ek/w500+ljtZ2xgPkdJsR0bneNfKCkQFOR2AL+oawMqi4xb7AasgFsxMYX9Cz8WJOtuh952Xr6RkZ8/hgNi3QCjMLjr4L/Z4M51HwA4LXxfnis1S1ETbDt48NJtikyI4Cat8s1XHVClYDuon0skJxck+SvHf57/6IvAf3QHNGDHlt1b3Fyk9B78CcLr4O4NKI3fVvEtdXWNjICYPAlHaXfoc0exNqwUEDtXLM0ms51/ngSQ86bJXuh"
+        customerName:
+          type: string
+          example: "John Doe"
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+                example: "p1"
+              price:
+                type: string
+                example: "10.5"
+              quantity:
+                type: string
+                example: "2"
+        totalAmount:
+          type: string
+          example: "26"
+        status:
+          type: string
+          example: "RECEPCION"
