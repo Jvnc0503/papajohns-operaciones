@@ -12,14 +12,7 @@ events_client = boto3.client("events")
 TABLE_NAME = os.environ["ORDERS_TABLE"]
 
 def handler(event, context):
-    # ------------------------------------------------------------------
-    # 1. SEGURIDAD: Aquí se insertará el Auth Lambda-to-Lambda del Taller 1
-    # ------------------------------------------------------------------
-    # (Espacio reservado para la implementación final de seguridad)
-    
-    # ------------------------------------------------------------------
-    # 2. VALIDACIÓN DE ENTRADA
-    # ------------------------------------------------------------------
+    # 1. VALIDACIÓN DE ENTRADA
     tenant_id = (event.get("pathParameters") or {}).get("tenantId")
     order_id = (event.get("pathParameters") or {}).get("id")
     
@@ -37,11 +30,9 @@ def handler(event, context):
     receipt_handle = body.get("receiptHandle")
 
     if not new_status or new_status not in VALID_TRANSITIONS:
-        return bad_request(f"Estado destino inválido o faltante.")
+        return bad_request("Estado destino inválido o faltante.")
 
-    # ------------------------------------------------------------------
-    # 3. VERIFICACIÓN Y ACTUALIZACIÓN EN DYNAMODB (Idempotencia)
-    # ------------------------------------------------------------------
+    # 2. VERIFICACIÓN Y ACTUALIZACIÓN EN DYNAMODB (Idempotencia)
     table = dynamodb.Table(TABLE_NAME)
     result = table.get_item(Key={"tenantId": tenant_id, "orderId": order_id})
     order = result.get("Item")
@@ -82,9 +73,7 @@ def handler(event, context):
         print(f"Error actualizando DynamoDB: {str(e)}")
         return server_error("Error de persistencia")
 
-    # ------------------------------------------------------------------
-    # 4. LIBERACIÓN DEL FLUJO (Step Functions)
-    # ------------------------------------------------------------------
+    # 3. LIBERACIÓN DEL FLUJO (Step Functions)
     if task_token:
         try:
             sfn_client.send_task_success(
@@ -94,16 +83,13 @@ def handler(event, context):
         except Exception as e:
             print(f"Error al notificar a Step Functions: {str(e)}")
 
-    # ------------------------------------------------------------------
-    # 5. ELIMINACIÓN DE LA TAREA EN COLA (SQS)
-    # ------------------------------------------------------------------
+    # 4. ELIMINACIÓN DE LA TAREA EN COLA (SQS)
     if receipt_handle:
         queues = {
             "COCINA": os.environ.get("SQS_COCINA_URL"),
             "EMPAQUE": os.environ.get("SQS_EMPAQUE_URL"),
             "DESPACHO": os.environ.get("SQS_DESPACHO_URL")
         }
-        # Borramos el mensaje de la cola de la etapa que se acaba de completar
         queue_url = queues.get(current_status) 
         
         if queue_url:
@@ -113,9 +99,7 @@ def handler(event, context):
             except Exception as e:
                 print(f"Error borrando mensaje SQS: {str(e)}")
 
-    # ------------------------------------------------------------------
-    # 6. PROPAGACIÓN DE EVENTOS (EventBridge)
-    # ------------------------------------------------------------------
+    # 5. PROPAGACIÓN DE EVENTOS (EventBridge)
     try:
         events_client.put_events(
             Entries=[{
