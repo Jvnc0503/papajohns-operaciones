@@ -1,0 +1,41 @@
+org: ${env:SLS_ORG}
+service: papa-johns-operations-api
+
+provider:
+  name: aws
+  runtime: python3.14
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 1024
+  timeout: 29
+  iam:
+    role: arn:aws:iam::${aws:accountId}:role/LabRole
+  environment:
+    # 1. Conexión a la base de datos del API Principal
+    ORDERS_TABLE: papa-johns-order-service-orders-${self:provider.stage}
+    
+    # 2. Conexión a las colas SQS del API Principal mediante URLs predecibles
+    SQS_COCINA_URL: https://sqs.${aws:region}.amazonaws.com/${aws:accountId}/papa-johns-order-service-cocina-queue-${self:provider.stage}
+    SQS_EMPAQUE_URL: https://sqs.${aws:region}.amazonaws.com/${aws:accountId}/papa-johns-order-service-empaque-queue-${self:provider.stage}
+    SQS_DESPACHO_URL: https://sqs.${aws:region}.amazonaws.com/${aws:accountId}/papa-johns-order-service-despacho-queue-${self:provider.stage}
+
+functions:
+  # Lee mensajes de SQS
+  getTasks:
+    handler: src/handlers/get_tasks.handler
+    events:
+      - http:
+          path: /tasks/{stage}
+          method: get
+          cors: true
+
+  # Actualiza base de datos, resuelve Step Functions y borra mensaje de SQS
+  updateOrderStatus:
+    handler: src/handlers/update_order_status.handler
+    events:
+      - http:
+          path: /tenants/{tenantId}/orders/{id}/status
+          method: patch
+          cors: true
+
+# No hay sección 'resources' porque la BD y Colas le pertenecen al otro microservicio.
